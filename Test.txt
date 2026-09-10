@@ -1,0 +1,16 @@
+Corregir conexion a base de datos en .env
+
+npx prism db push
+
+npx tsx prisma/seed.ts
+
+Crear usuario admin con datos:
+Email: admin@test.com
+Password: admin123
+Nombre: Admin Test
+Telefono: 1234567890
+EmailVerificado: true
+Activo: true
+
+Aviso:
+No subir en produccion seed.ts

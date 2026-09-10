@@ -1,0 +1,291 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  accounts Account[]
+  sessions Session[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+
+// Tabla de Roles
+model Rol {
+  id           String    @id @default(uuid())
+  nombre       String    @unique @db.VarChar(100) 
+  descripcion  String?   @db.Text
+  creado_en    DateTime  @default(now())
+  actualizado_en DateTime @updatedAt
+
+  usuarios Usuario[]
+}
+
+// Tabla de Departamentos
+model Departamento {
+  id           String    @id @default(uuid())
+  nombre       String    @unique @db.VarChar(255)
+  descripcion  String?   @db.Text
+  managerId    String? 
+  activo       Boolean   @default(true)
+  creado_en    DateTime  @default(now())
+  actualizado_en DateTime @updatedAt
+
+  // Relaciones
+  manager Usuario? @relation("ManagerDepartamento", fields: [managerId], references: [id])
+  usuarios Usuario[]
+  tickets  Ticket[]
+}
+
+// Tabla de Usuarios
+model Usuario {
+  id               String    @id @default(uuid())
+  correo           String    @unique @db.VarChar(255)
+  contrasena       String    @db.VarChar(255)
+  nombre           String    @db.VarChar(255)
+  rolId            String
+  departamentoId   String?
+  avatar           String?   @db.VarChar(255)
+  telefono         String?   @db.VarChar(50)
+  activo           Boolean   @default(true)
+  emailVerificado  Boolean   @default(false)
+  ultimoIngreso    DateTime?
+  creado_en        DateTime  @default(now())
+  actualizado_en   DateTime  @updatedAt
+
+  // Relaciones
+  rol Rol @relation(fields: [rolId], references: [id])
+  departamento Departamento? @relation(fields: [departamentoId], references: [id])
+
+  // Relaciones inversas (para tickets, comentarios, historial, etc.)
+  departamentosManejados Departamento[] @relation("ManagerDepartamento")
+  ticketsCreados Ticket[] @relation("TicketCreadoPor")
+  ticketsAsignados Ticket[] @relation("TicketAsignadoA")
+  comentarios Comentario[]
+  archivosAdjuntos ArchivoAdjunto[]
+  historialTickets HistorialTicket[]
+  notificaciones Notificacion[]
+  plantillasPlantillaRespuesta PlantillaRespuesta[]
+}
+
+// Tabla de Categorías
+model Categoria {
+  id           String    @id @default(uuid())
+  nombre       String    @unique @db.VarChar(255)
+  descripcion  String?   @db.Text
+  color        String?   @db.VarChar(7)
+  activo       Boolean   @default(true)
+  creado_en    DateTime  @default(now())
+  actualizado_en DateTime @updatedAt
+
+  tickets Ticket[]
+  plantillas PlantillaRespuesta[]
+}
+
+// Tabla de Políticas SLA
+model PoliticaSLA {
+  id                String    @id @default(uuid())
+  nombre            String    @db.VarChar(255)
+  prioridad         String
+  tiempoRespuesta   Int       
+  tiempoResolucion  Int     
+  activo            Boolean   @default(true)
+  creado_en         DateTime  @default(now())
+  actualizado_en    DateTime  @updatedAt
+
+  tickets Ticket[]
+}
+
+// Tabla de Etiquetas
+model Etiqueta {
+  id           String    @id @default(uuid())
+  nombre       String    @unique @db.VarChar(100)
+  color        String?   @db.VarChar(7)
+  creado_en    DateTime  @default(now())
+
+  tickets_etiquetas TicketEtiqueta[]
+}
+
+// Tabla de Plantillas de Respuesta
+model PlantillaRespuesta {
+  id           String    @id @default(uuid())
+  titulo       String    @db.VarChar(255)
+  contenido    String    @db.Text
+  categoriaId  String?
+  creadoPorId  String
+  activo       Boolean   @default(true)
+  creado_en    DateTime  @default(now())
+  actualizado_en DateTime @updatedAt
+
+  categoria Categoria? @relation(fields: [categoriaId], references: [id])
+  creadoPor Usuario @relation(fields: [creadoPorId], references: [id])
+}
+
+// Tabla de Tickets
+model Ticket {
+  id                   String    @id @default(uuid())
+  numeroTicket         String    @unique @db.VarChar(50)
+  titulo               String    @db.VarChar(255)
+  descripcion          String    @db.Text
+  estado               String   
+  prioridad            String
+  fechaLimite          DateTime?
+  resueltoEn           DateTime?
+  cerradoEn            DateTime?
+  calificacion         Int?
+  comentarioCalificacion String? @db.Text
+  creado_en            DateTime  @default(now())
+  actualizado_en       DateTime  @updatedAt
+
+  // Foreign Keys
+  categoriaId          String?
+  creadoPorId          String
+  asignadoAId          String?
+  departamentoId       String?
+  politicaSlaId        String?
+
+  // Relaciones
+  categoria Categoria? @relation(fields: [categoriaId], references: [id])
+  creadoPor Usuario @relation("TicketCreadoPor", fields: [creadoPorId], references: [id])
+  asignadoA Usuario? @relation("TicketAsignadoA", fields: [asignadoAId], references: [id])
+  departamento Departamento? @relation(fields: [departamentoId], references: [id])
+  politicaSla PoliticaSLA? @relation(fields: [politicaSlaId], references: [id])
+
+  // Relaciones inversas
+  comentarios Comentario[]
+  archivosAdjuntos ArchivoAdjunto[]
+  historialTickets HistorialTicket[]
+  notificaciones Notificacion[]
+  tickets_etiquetas TicketEtiqueta[]
+}
+
+// Tabla de Comentarios
+model Comentario {
+  id           String    @id @default(uuid())
+  contenido    String    @db.Text
+  esInterno    Boolean   @default(false)
+  creado_en    DateTime  @default(now())
+  actualizado_en DateTime @updatedAt
+
+  // Foreign Keys
+  ticketId     String?
+  usuarioId    String?
+
+  // Relaciones
+  ticket Ticket? @relation(fields: [ticketId], references: [id])
+  usuario Usuario? @relation(fields: [usuarioId], references: [id])
+
+  // Relaciones inversas
+  archivosAdjuntos ArchivoAdjunto[]
+}
+
+// Tabla de Archivos Adjuntos
+model ArchivoAdjunto {
+  id            String    @id @default(uuid())
+  nombreArchivo String    @db.VarChar(255)
+  urlArchivo    String    @db.VarChar(500)
+  tamanoArchivo Int
+  tipoMime      String?   @db.VarChar(100)
+  creado_en     DateTime  @default(now())
+
+  // Foreign Keys
+  ticketId      String?
+  comentarioId  String?
+  usuarioId     String?
+
+  // Relaciones
+  ticket Ticket? @relation(fields: [ticketId], references: [id])
+  comentario Comentario? @relation(fields: [comentarioId], references: [id])
+  usuario Usuario? @relation(fields: [usuarioId], references: [id])
+}
+
+// Tabla de Historial de Tickets
+model HistorialTicket {
+  id           String    @id @default(uuid())
+  campo        String    @db.VarChar(100)
+  valorAnterior String?  @db.Text
+  valorNuevo   String?   @db.Text
+  creado_en    DateTime  @default(now())
+
+  ticketId     String
+  usuarioId    String
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+}
+
+model Notificacion {
+  id           String    @id @default(uuid())
+  tipo         String    @db.VarChar(100)
+  mensaje      String    @db.Text
+  leida        Boolean   @default(false)
+  creado_en    DateTime  @default(now())
+
+  usuarioId    String
+  ticketId     String?
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  ticket Ticket? @relation(fields: [ticketId], references: [id])
+}
+
+// Tabla intermedia Tickets-Etiquetas (muchos a muchos)
+model TicketEtiqueta {
+  ticketId    String
+  etiquetaId  String
+  creado_en   DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+  etiqueta Etiqueta @relation(fields: [etiquetaId], references: [id])
+
+  @@id([ticketId, etiquetaId])
+}
