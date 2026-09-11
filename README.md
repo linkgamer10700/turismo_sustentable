@@ -1,39 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Proyecto de Turismo Sustentable
 
-## Getting Started
+Sistema web desarrollado con **Next.js**, **React**, **Tailwind CSS**, **Prisma ORM**, **NextAuth v5** y **MySQL**, completamente contenedorizado con **Docker** para garantizar reproducibilidad en cualquier entorno.
 
-First, run the development server:
+---
+
+## 🚀 Inicio Rápido con Docker (Recomendado)
+
+No requieres instalar Node.js ni MySQL en tu sistema. Solo necesitas tener instalado [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+
+### 1. Clonar el repositorio y levantar los contenedores
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Al ejecutar este comando:
+1. Se levanta el contenedor de la base de datos **MySQL 8.0** (`turismo_db`).
+2. Se espera a que la base de datos esté lista y saludable (*healthcheck*).
+3. Se compila y empaqueta la aplicación **Next.js** (`turismo_app`).
+4. Se aplican automáticamente las tablas de la base de datos con `prisma db push`.
+5. Se insertan automáticamente los datos iniciales de prueba (roles y usuario admin) mediante `prisma/seed.ts`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Acceder a la aplicación
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Abre tu navegador en:
+- **Página Principal**: [http://localhost:3000](http://localhost:3000)
+- **Inicio de Sesión Administrador**: [http://localhost:3000/login](http://localhost:3000/login)
+- **Inicio de Sesión Usuario**: [http://localhost:3000/login/loginUser](http://localhost:3000/login/loginUser)
+- **Registro de Usuario**: [http://localhost:3000/register](http://localhost:3000/register)
 
-## Learn More
+### 3. Credenciales de Prueba (Sembradas automáticamente)
 
-To learn more about Next.js, take a look at the following resources:
+- **Email**: `admin@test.com`
+- **Contraseña**: `admin123`
+- **Rol**: `Administrador` (Redirige al dashboard en `/admin/dashboard`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Comandos útiles de Docker
 
-## Deploy on Vercel
+| Acción | Comando |
+| :--- | :--- |
+| Iniciar en segundo plano (*detached*) | `docker compose up -d` |
+| Detener contenedores | `docker compose down` |
+| Detener y borrar volúmenes (reiniciar DB desde cero) | `docker compose down -v` |
+| Ver registros (*logs*) en tiempo real | `docker compose logs -f app` |
+| Ejecutar comandos de Prisma dentro del contenedor | `docker compose exec app npx prisma studio` |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 💻 Desarrollo Local (Sin Docker)
 
-1. npx create-next-app@latest
-2. npx shadcn@latest init
+Si prefieres ejecutar el proyecto localmente en tu máquina:
+
+1. **Instalar dependencias**:
+   ```bash
+   npm install
+   ```
+
+2. **Configurar variables de entorno**:
+   Copia el archivo `.env.example` como `.env` y ajusta tu conexión a MySQL:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Sincronizar base de datos y crear datos iniciales**:
+   ```bash
+   npx prisma db push
+   npx tsx prisma/seed.ts
+   ```
+
+4. **Iniciar servidor de desarrollo**:
+   ```bash
+   npm run dev
+   ```

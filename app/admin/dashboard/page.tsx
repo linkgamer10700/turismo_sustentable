@@ -1,20 +1,115 @@
-import { auth } from "@/auth"
-import { redirect } from "next/navigation"
+import { auth, signOut } from "@/auth";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { ModeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { ShieldCheck, User, Mail, LogOut, CheckCircle2 } from "lucide-react";
 
 export default async function AdminDashboardPage() {
-    const session = await auth()
+  const session = await auth();
 
-    if (!session) {
-        redirect("/login")
-    }
+  if (!session) {
+    redirect("/login");
+  }
 
-    return (
-        <div className="p-8">
-            <h1 className="text-2xl font-bold mb-4">Dashboard de Administrador</h1>
-            <p>Bienvenido, {session.user?.name || session.user?.email}</p>
-            <div className="mt-4 p-4 border rounded bg-muted">
-                <pre>{JSON.stringify(session, null, 2)}</pre>
-            </div>
+  const userName = session.user?.name || "Administrador";
+  const userEmail = session.user?.email || "admin@test.com";
+
+  return (
+    <div className="min-h-screen flex flex-col bg-muted/20">
+      {/* Barra superior de Administrador */}
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-md">
+        <div className="container mx-auto flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-xl font-bold tracking-tight text-foreground">
+              Ticko
+            </Link>
+            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+              Admin
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <ModeToggle />
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/login" });
+              }}
+            >
+              <Button variant="outline" size="sm" type="submit" className="gap-2">
+                <LogOut className="h-4 w-4" />
+                Cerrar Sesión
+              </Button>
+            </form>
+          </div>
         </div>
-    )
+      </header>
+
+      {/* Contenido Principal */}
+      <main className="container mx-auto flex-1 p-6 md:p-10 max-w-5xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Panel de Administración
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Bienvenido de nuevo, <span className="font-semibold text-foreground">{userName}</span>. Tu sesión está activa y protegida.
+          </p>
+        </div>
+
+        {/* Tarjetas de estado */}
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
+          <div className="rounded-xl border bg-card p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Usuario Actual</span>
+              <User className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="mt-4">
+              <p className="text-lg font-bold text-card-foreground">{userName}</p>
+              <p className="text-sm text-muted-foreground truncate">{userEmail}</p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border bg-card p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Rol de Acceso</span>
+              <ShieldCheck className="h-5 w-5 text-primary" />
+            </div>
+            <div className="mt-4">
+              <p className="text-lg font-bold text-card-foreground">Administrador</p>
+              <p className="text-sm text-muted-foreground">Control total del sistema</p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border bg-card p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Estado de Sesión</span>
+              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+            </div>
+            <div className="mt-4">
+              <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">Autenticado</p>
+              <p className="text-sm text-muted-foreground">Token JWT validado</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Datos técnicos de la sesión */}
+        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+          <div className="border-b bg-muted/40 px-6 py-4">
+            <h2 className="text-base font-semibold text-card-foreground">
+              Detalles de la Sesión JWT
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Información decodificada por NextAuth en el servidor
+            </p>
+          </div>
+          <div className="p-6">
+            <pre className="rounded-lg bg-muted p-4 text-xs font-mono overflow-x-auto text-foreground">
+              {JSON.stringify(session, null, 2)}
+            </pre>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }

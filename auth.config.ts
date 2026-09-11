@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs"
 
 // Notice this is only an object, not a full Auth.js instance
 export default {
+  trustHost: true,
   providers: [
     Credentials({
       async authorize(credentials) {

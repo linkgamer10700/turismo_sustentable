@@ -1,0 +1,41 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: turismo_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: turismo_sustentable
+      MYSQL_USER: turismo_user
+      MYSQL_PASSWORD: turismo_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: turismo_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "mysql://turismo_user:turismo_pass@db:3306/turismo_sustentable"
+      AUTH_SECRET: "turismo_sustentable_secret_auth_token_key_2026_dev"
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NODE_ENV: "production"
+
+volumes:
+  mysql_data:
