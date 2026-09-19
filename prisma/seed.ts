@@ -4,44 +4,45 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-    // Crear Roles
-    const adminRole = await prisma.rol.upsert({
-        where: { nombre: 'Administrador' },
-        update: {},
-        create: {
-            nombre: 'Administrador',
-            descripcion: 'Rol con acceso total al sistema',
-        },
-    })
-
-    const userRole = await prisma.rol.upsert({
-        where: { nombre: 'Usuario' },
-        update: {},
-        create: {
-            nombre: 'Usuario',
-            descripcion: 'Rol para usuarios estándar',
-        },
-    })
-
-    console.log({ adminRole, userRole })
-
-    // Crear Usuario Admin por defecto
     const hashedPassword = await bcrypt.hash('admin123', 10)
 
-    const adminUser = await prisma.usuario.upsert({
-        where: { correo: 'admin@test.com' },
+    // Crear Usuario Admin por defecto
+    const adminUser = await prisma.usuarios.upsert({
+        where: { email: 'admin@test.com' },
         update: {},
         create: {
             nombre: 'Admin Test',
-            correo: 'admin@test.com',
-            contrasena: hashedPassword,
-            rolId: adminRole.id,
-            telefono: '1234567890',
-            emailVerificado: true,
+            email: 'admin@test.com',
+            password_hash: hashedPassword,
+            rol: 'Administrador',
         },
     })
 
-    console.log({ adminUser })
+    // Crear Usuario Negocio por defecto
+    const negocioUser = await prisma.usuarios.upsert({
+        where: { email: 'negocio@test.com' },
+        update: {},
+        create: {
+            nombre: 'Negocio Test',
+            email: 'negocio@test.com',
+            password_hash: hashedPassword,
+            rol: 'Proveedor',
+        },
+    })
+
+    // Crear Usuario Turista por defecto
+    const turistaUser = await prisma.usuarios.upsert({
+        where: { email: 'turista@test.com' },
+        update: {},
+        create: {
+            nombre: 'Turista Test',
+            email: 'turista@test.com',
+            password_hash: hashedPassword,
+            rol: 'Turista',
+        },
+    })
+
+    console.log({ adminUser, negocioUser, turistaUser })
 }
 
 main()

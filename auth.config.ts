@@ -15,18 +15,18 @@ export default {
         if (validatedFields.success) {
           const { email, password } = validatedFields.data
 
-          const user = await prisma.usuario.findUnique({
-            where: { correo: email }
+          const user = await prisma.usuarios.findUnique({
+            where: { email: email }
           })
 
-          if (!user || !user.contrasena) return null
+          if (!user || !user.password_hash) return null
 
           const passwordsMatch = await bcrypt.compare(
             password,
-            user.contrasena
+            user.password_hash
           )
 
-          if (passwordsMatch) return user
+          if (passwordsMatch) return user as any
         }
 
         return null

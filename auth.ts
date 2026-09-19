@@ -13,16 +13,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
+        token.id = user.id?.toString() || ""
         token.name = (user as any).nombre || user.name
-        token.email = (user as any).correo || user.email
-        token.role = (user as any).rolId
+        token.email = (user as any).email || user.email
+        token.role = (user as any).rol
       }
       return token
     },
     async session({ session, token }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub
+      if (token.id && session.user) {
+        session.user.id = token.id as string
       }
       if (token.name && session.user) {
         session.user.name = token.name as string
