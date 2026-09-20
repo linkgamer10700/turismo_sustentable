@@ -74,3 +74,11 @@ Si prefieres ejecutar el proyecto localmente en tu máquina:
    ```bash
    npm run dev
    ```
+
+> [!Important] Credenciales de prueba
+> Admin: admin@test.com
+> Contraseña: admin123
+> Usuario: turista@test.com
+> Contraseña: admin123
+> Usuario: negocio@test.com
+> Contraseña: admin123
