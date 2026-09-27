@@ -69,4 +69,16 @@ model usuarios {
   idioma          String?  @default("es") @db.VarChar(10)
   preferencias    Json?
   fecha_registro  DateTime @default(now())
-}
+}
+
+// Tabla de Proveedores
+model proveedores {
+  id              Int      @id @default(autoincrement())
+  
+}
+
+// Tabla de disponibilidad y catalogo
+model experiencias{
+  id              Int      @id @default(autoincrement())
+
+}
