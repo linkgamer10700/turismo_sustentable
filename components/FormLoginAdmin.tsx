@@ -1,7 +1,7 @@
 "use client";
 
 import { z } from "zod";
-import { loginAdminSchema } from "@/lib/zod";
+import { LoginSchema } from "@/lib/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -19,22 +19,20 @@ import { useState, useTransition } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
-const FormLogin = () => {
+const FormLoginAdmin = () => {
   const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<z.infer<typeof loginAdminSchema>>({
-    resolver: zodResolver(loginAdminSchema),
+  const form = useForm<z.infer<typeof LoginSchema>>({
+    resolver: zodResolver(LoginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof loginAdminSchema>) {
+  function onSubmit(values: z.infer<typeof LoginSchema>) {
     setError("");
-    setSuccess("");
 
     startTransition(() => {
       loginAdmin(values).then((data) => {
@@ -74,7 +72,12 @@ const FormLogin = () => {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input disabled={isPending} type="password" placeholder="••••••••" {...field} />
+                <Input
+                  disabled={isPending}
+                  type="password"
+                  placeholder="••••••••"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -96,4 +99,4 @@ const FormLogin = () => {
     </Form>
   );
 };
-export default FormLogin;
+export default FormLoginAdmin;

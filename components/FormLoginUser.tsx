@@ -1,7 +1,7 @@
 "use client";
 
 import { z } from "zod";
-import { loginSchema } from "@/lib/zod";
+import { LoginSchema } from "@/lib/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -21,21 +21,18 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 const FormLoginUser = () => {
   const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<z.infer<typeof LoginSchema>>({
+    resolver: zodResolver(LoginSchema),
     defaultValues: {
       email: "",
       password: "",
-      company: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof loginSchema>) {
+  function onSubmit(values: z.infer<typeof LoginSchema>) {
     setError("");
-    setSuccess("");
 
     startTransition(() => {
       login(values).then((data) => {
@@ -75,24 +72,10 @@ const FormLoginUser = () => {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input disabled={isPending} type="password" placeholder="••••••••" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="company"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Compañía</FormLabel>
-              <FormControl>
                 <Input
                   disabled={isPending}
-                  type="text"
-                  placeholder="El nombre de tu empresa"
+                  type="password"
+                  placeholder="••••••••"
                   {...field}
                 />
               </FormControl>

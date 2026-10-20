@@ -1,7 +1,7 @@
 "use client";
 
 import { z } from "zod";
-import { registerSchema } from "@/lib/zod";
+import { RegisterSchema } from "@/lib/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -24,17 +24,18 @@ const FormRegister = () => {
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm({
+    resolver: zodResolver(RegisterSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
-      name: "",
-      phone: "",
+      rol: "TURISTA" as const,
+      theme: "SYSTEM" as const,
     },
   });
 
-  function onSubmit(values: z.infer<typeof registerSchema>) {
+  function onSubmit(values: z.infer<typeof RegisterSchema>) {
     setError("");
     setSuccess("");
 
@@ -53,7 +54,6 @@ const FormRegister = () => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-
         <FormField
           control={form.control}
           name="name"
@@ -61,7 +61,11 @@ const FormRegister = () => {
             <FormItem>
               <FormLabel>Nombre Completo</FormLabel>
               <FormControl>
-                <Input disabled={isPending} placeholder="Tu nombre" {...field} />
+                <Input
+                  disabled={isPending}
+                  placeholder="Tu nombre"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -89,26 +93,17 @@ const FormRegister = () => {
 
         <FormField
           control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Teléfono</FormLabel>
-              <FormControl>
-                <Input disabled={isPending} type="tel" placeholder="Ej. 55 1234 5678" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input disabled={isPending} type="password" placeholder="••••••••" {...field} />
+                <Input
+                  disabled={isPending}
+                  type="password"
+                  placeholder="••••••••"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

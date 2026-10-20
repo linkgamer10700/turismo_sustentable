@@ -1,7 +1,7 @@
 "use client";
 
 import { z } from "zod";
-import { forgotPasswordSchema } from "@/lib/zod";
+import { ForgotPasswordSchema } from "@/lib/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -16,14 +16,14 @@ import {
 import { Input } from "@/components/ui/input";
 
 const FormForgotPassword = () => {
-  const form = useForm<z.infer<typeof forgotPasswordSchema>>({
-    resolver: zodResolver(forgotPasswordSchema),
+  const form = useForm<z.infer<typeof ForgotPasswordSchema>>({
+    resolver: zodResolver(ForgotPasswordSchema),
     defaultValues: {
       email: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof forgotPasswordSchema>) {
+  function onSubmit(values: z.infer<typeof ForgotPasswordSchema>) {
     console.log(values);
   }
 

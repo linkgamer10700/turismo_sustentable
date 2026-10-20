@@ -1,24 +1,108 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Rol {
+  TURISTA
+  PROVEEDOR
+  ADMINISTRADOR
+}
+
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum EstadoValidacion {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+enum TipoDocumento {
+  CERTIFICACION_ECOLOGICA
+  MANEJO_RESIDUOS
+  USO_AGUA_ENERGIA
+  IMPACTO_COMUNITARIO
+  OTRO
+}
+
+enum EstadoReserva {
+  PENDIENTE_PAGO
+  CONFIRMADA
+  CANCELADA
+  COMPLETADA
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String?         @unique
+  emailVerified DateTime?       @map("email_verified")
+  passwordHash  String?         @map("password_hash")
+  image         String?
+  rol           Rol             @default(TURISTA)
+  idioma        String          @default("es") @db.VarChar(10)
+  theme         ThemePreference @default(SYSTEM)
+  preferencias  Json?
+  fechaRegistro DateTime        @default(now()) @map("fecha_registro")
+
+  accounts  Account[]
+  sessions  Session[]
+  proveedor Proveedor?
+  reservas  Reserva[]
+  favoritos Favorito[]
+
+  @@map("users")
+}
+
+model Proveedor {
+  id               String           @id @default(cuid())
+  userId           String           @unique @map("user_id")
+  nombreNegocio    String?          @map("nombre_negocio") @db.VarChar(150)
+  descripcionBreve String?          @map("descripcion_breve") @db.Text
+  categoria        String?          @db.VarChar(100)
+  alcaldiaCDMX     String?          @map("alcaldia_cdmx") @db.VarChar(100)
+  estadoValidacion EstadoValidacion @default(PENDIENTE) @map("estado_validacion")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentos   DocumentoEvidencia[]
+  experiencias Experiencia[]
+
+  @@map("proveedores")
+}
+
+model DocumentoEvidencia {
+  id                     String           @id @default(cuid())
+  proveedorId            String           @map("proveedor_id")
+  tipo                   TipoDocumento
+  titulo                 String           @db.VarChar(150)
+  descripcion            String?          @db.Text
+  archivoUrl             String           @map("archivo_url") @db.VarChar(255)
+  estado                 EstadoValidacion @default(PENDIENTE)
+  retroalimentacionAdmin String?          @map("retroalimentacion_admin") @db.Text
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @updatedAt @map("updated_at")
+
+  proveedor Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+
+  @@map("documentos_evidencias")
+}
+
 model Account {
   id                String  @id @default(cuid())
-  userId            String
+  userId            String  @map("user_id")
   type              String
   provider          String
-  providerAccountId String
+  providerAccountId String  @map("provider_account_id")
   refresh_token     String? @db.Text
   access_token      String? @db.Text
   expires_at        Int?
@@ -30,25 +114,17 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@map("accounts")
 }
 
 model Session {
   id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
 
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-
-  accounts Account[]
-  sessions Session[]
+  @@map("sessions")
 }
 
 model VerificationToken {
@@ -57,28 +133,60 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
-// Tabla de Usuarios
-model usuarios {
-  id              Int      @id @default(autoincrement())
-  rol             String   @db.VarChar(50) // 'Turista', 'Proveedor', 'Administrador'
-  nombre          String   @db.VarChar(150)
-  email           String   @unique @db.VarChar(150)
-  password_hash   String   @db.VarChar(255)
-  idioma          String?  @default("es") @db.VarChar(10)
-  preferencias    Json?
-  fecha_registro  DateTime @default(now())
+model Experiencia {
+  id                 String    @id @default(cuid())
+  proveedorId        String    @map("proveedor_id")
+  proveedor          Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+  titulo             String    @db.VarChar(180)
+  descripcion        String    @db.Text
+  categoria          String    @db.VarChar(100) // Ecoturismo, Gastronomía, Cultura, Aventura, Naturaleza
+  alcaldiaCDMX       String    @map("alcaldia_cdmx") @db.VarChar(100)
+  ubicacionDetallada String?   @map("ubicacion_detallada") @db.VarChar(255)
+  precio             Decimal   @db.Decimal(10, 2)
+  duracionMinutos    Int       @map("duracion_minutos")
+  capacidadCarga     Int       @map("capacidad_carga") // Límite de carga para evitar desgaste ecológico
+  imagenes           Json?     // Array de URLs en string
+  activo             Boolean   @default(true)
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  reservas  Reserva[]
+  favoritos Favorito[]
+
+  @@map("experiencias")
 }
 
-// Tabla de Proveedores
-model proveedores {
-  id              Int      @id @default(autoincrement())
-  
+model Reserva {
+  id                String        @id @default(cuid())
+  userId            String        @map("user_id")
+  experienciaId     String        @map("experiencia_id")
+  fecha             DateTime      @db.Date
+  numeroPersonas    Int           @map("numero_personas")
+  precioTotal       Decimal       @map("precio_total") @db.Decimal(10, 2)
+  estado            EstadoReserva @default(CONFIRMADA)
+  codigoComprobante String        @unique @map("codigo_comprobante") @db.VarChar(50)
+  notasEspeciales   String?       @map("notas_especiales") @db.Text
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiencia Experiencia @relation(fields: [experienciaId], references: [id], onDelete: Cascade)
+
+  @@map("reservas")
 }
 
-// Tabla de disponibilidad y catalogo
-model experiencias{
-  id              Int      @id @default(autoincrement())
+model Favorito {
+  id            String      @id @default(cuid())
+  userId        String      @map("user_id")
+  experienciaId String      @map("experiencia_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
 
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiencia Experiencia @relation(fields: [experienciaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, experienciaId])
+  @@map("favoritos")
 }

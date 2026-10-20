@@ -1,43 +1,101 @@
 "use server";
 
-import * as z from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { registerSchema } from "@/lib/zod";
+import { RegisterSchema, type RegisterInput } from "@/lib/validations/auth";
 
-export const register = async (values: z.infer<typeof registerSchema>) => {
-    const validatedFields = registerSchema.safeParse(values);
+export const register = async (values: RegisterInput | Record<string, unknown>) => {
+  const validatedFields = RegisterSchema.safeParse(values);
 
-    if (!validatedFields.success) {
-        return { error: "Campos inválidos!" };
-    }
+  if (!validatedFields.success) {
+    return {
+      error: "Campos inválidos",
+      details: validatedFields.error.flatten().fieldErrors,
+    };
+  }
 
-    const { email, password, name, phone } = validatedFields.data;
+  const {
+    email,
+    password,
+    name,
+    rol = "TURISTA",
+    theme = "SYSTEM",
+    preferencias,
+    nombreNegocio,
+    descripcionBreve,
+    categoria,
+    alcaldiaCDMX,
+  } = validatedFields.data;
 
-    const existingUser = await prisma.usuarios.findUnique({
-        where: {
-            email: email,
-        },
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
     });
 
     if (existingUser) {
-        return { error: "El correo ya está en uso!" };
+      return { error: "El correo ya está en uso!" };
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Default role assignment
-    const userRole = "Turista";
-
-    await prisma.usuarios.create({
+    const createdUser = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
         data: {
-            nombre: name,
-            email: email,
-            password_hash: hashedPassword,
-            rol: userRole,
-            // telefono is not in the new schema, so it's omitted
+          name,
+          email,
+          passwordHash: hashedPassword,
+          rol,
+          theme,
+          preferencias: preferencias ?? undefined,
         },
+      });
+
+      if (rol === "PROVEEDOR") {
+        await tx.proveedor.create({
+          data: {
+            userId: user.id,
+            nombreNegocio: nombreNegocio || name,
+            descripcionBreve: descripcionBreve || null,
+            categoria: categoria || null,
+            alcaldiaCDMX: alcaldiaCDMX || null,
+            estadoValidacion: "PENDIENTE",
+          },
+        });
+      }
+
+      return tx.user.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          rol: true,
+          idioma: true,
+          theme: true,
+          preferencias: true,
+          fechaRegistro: true,
+          proveedor: {
+            select: {
+              id: true,
+              nombreNegocio: true,
+              descripcionBreve: true,
+              categoria: true,
+              alcaldiaCDMX: true,
+              estadoValidacion: true,
+            },
+          },
+        },
+      });
     });
 
-    return { success: "Cuenta creada exitosamente!" };
+    return {
+      success: "Cuenta creada exitosamente!",
+      data: createdUser,
+    };
+  } catch (error) {
+    console.error("[REGISTER_ACTION_ERROR]", error);
+    return { error: "Error en el servidor al registrar el usuario" };
+  }
 };
