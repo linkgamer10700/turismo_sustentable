@@ -1,120 +1,111 @@
-"use client";
+import Image from "next/image";
+import Link from "next/link";
 
-import Link from 'next/link'
-import { Button } from '@/components/ui/button' 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Ticket, Users, BarChartHorizontal, ArrowRight } from 'lucide-react' 
-
-import { TypeAnimation } from 'react-type-animation'
-import { Fade, Slide } from "react-awesome-reveal"
-
-const HomePage = () => {
+export default function Home() {
   return (
-    <>
-      <section className="container mx-auto px-4 py-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-12">
-          
-          <div className="space-y-6">
-            <TypeAnimation
-              sequence={[
-                'Transforma tu Soporte al Cliente con Ticko',
-                2000,
-                'Centraliza, Gestiona y Resuelve Incidencias',
-                2000,
-                'Reportes, Métricas y Asignación de Equipo',
-                2000,
-              ]}
-              wrapper="h1"
-              speed={40}
-              className="text-4xl md:text-5xl font-extrabold tracking-tight"
-              repeat={Infinity}
-            />
+    <main className="relative flex min-h-[calc(100vh-4.75rem)] w-full flex-col items-center justify-center overflow-hidden bg-background text-foreground transition-colors duration-300 isolate">
+      
+      {/* Círculo superior izquierdo */}
+      <div className="absolute w-[40rem] h-[40rem] -left-[12.5rem] -top-[16.25rem] rounded-full bg-blob-top z-0 transition-colors duration-300" />
+      
+      {/* Círculo inferior derecho */}
+      <div className="absolute w-[26.25rem] h-[26.25rem] -right-[10rem] bottom-[3.75rem] rounded-full bg-blob-bottom z-0 transition-colors duration-300" />
+
+      {/* ================= MONTAÑAS (Código SVG completo y expandible) ================= */}
+      <div className="absolute bottom-0 left-0 w-full h-[140px] z-0 pointer-events-none">
+        
+        {/* Montaña Grande (Atrás) - Color #8F9F7E */}
+        <svg 
+          viewBox="0 0 1440 140" 
+          preserveAspectRatio="none" 
+          className="absolute bottom-0 left-0 w-full h-[140px] text-[#8F9F7E] dark:brightness-75 transition-colors duration-300"
+        >
+          <path 
+            fill="currentColor" 
+            d="M0 140V76L288 20L604.8 80L950 25L1250 70L1440 35V140Z" 
+          />
+        </svg>
+
+        {/* Montaña Chica (Frente) - Color #5A7050 */}
+        <svg 
+          viewBox="0 0 1440 76" 
+          preserveAspectRatio="none" 
+          className="absolute bottom-0 left-0 w-full h-[76px] text-[#5A7050] dark:brightness-75 transition-colors duration-300"
+        >
+          <path 
+            fill="currentColor" 
+            d="M0 76V44L316.8 4L662.4 48L1050 10L1320 50L1440 25V76Z" 
+          />
+        </svg>
+      </div>
+
+      {/* === CONTENIDO CENTRAL === */}
+      <div className="relative z-10 flex w-full max-w-[1200px] items-center justify-between px-8 py-12">
+        
+        {/* Texto Izquierdo */}
+        <div className="w-[15.625rem] space-y-2">
+          <p className="text-[0.6875rem] font-bold tracking-[0.1875rem] text-primary uppercase">
+            01 · CONECTA
+          </p>
+          <p className="text-[0.875rem] leading-[1.3125rem] text-muted-foreground">
+            Turistas y cooperativas locales en un solo lugar.
+          </p>
+        </div>
+
+        {/* Órbita Central Animada */}
+        <div className="relative flex h-[550px] w-[550px] flex-col items-center justify-center">
+          <div className="absolute h-full w-full animate-[spin_40s_linear_infinite]">
+            <div className="absolute h-full w-full rounded-full border border-dashed border-[#B0B0B0] dark:border-gray-700 transition-colors duration-300" />
             
-            <p className="text-lg text-muted-foreground max-w-xl">
-              Centraliza, gestiona y resuelve todas las incidencias de tus clientes
-              en una plataforma simple y potente.
-            </p>
+            <div className="absolute left-[12%] top-[18%] -translate-x-1/2 -translate-y-1/2 z-20">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary shadow-md [animation:reverse-spin_40s_linear_infinite]">
+                <Image src="/hoja_oscura.svg" alt="Hoja" width={24} height={24} />
+              </div>
+            </div>
             
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" asChild>
-                <Link href="/register">Comenzar Ahora</Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/contactPage">
-                  Solicitar una Demo
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+            <div className="absolute bottom-[28%] left-[2%] -translate-x-1/2 translate-y-1/2 z-20">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E2E0D5] shadow-md [animation:reverse-spin_40s_linear_infinite]">
+                <Image src="/hoja.svg" alt="Hoja" width={24} height={24} />
+              </div>
+            </div>
+            
+            <div className="absolute bottom-[22%] right-[10%] translate-x-1/2 translate-y-1/2 z-20">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#708B63] shadow-md [animation:reverse-spin_40s_linear_infinite]">
+                <Image src="/hoja_oscura.svg" alt="Hoja" width={24} height={24} />
+              </div>
             </div>
           </div>
-          
-          <div className="bg-muted rounded-lg h-80 w-full flex items-center justify-center">
-            <p className="text-muted-foreground">(No se que poner aqui pero se ve chido C:)</p>
-          </div>
-          
-        </div>
-      </section>
 
-      <section className="bg-gray-50 dark:bg-zinc-950 py-24 px-4">
-        <div className="container mx-auto text-center">
-          
-          <h2 className="text-3xl font-bold mb-4">
-            Todo lo que necesitas en un solo lugar
-          </h2>
-          <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Desde la creación del ticket hasta la resolución, Ticko optimiza tu flujo de trabajo.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            <Fade direction="up" cascade damping={0.2} triggerOnce>
-              <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md text-left space-y-3 h-full">
-                <Ticket className="h-10 w-10 text-primary" />
-                <h3 className="text-xl font-bold">Gestión Centralizada</h3>
-                <p className="text-muted-foreground">
-                  Recibe y gestiona tickets de múltiples canales en una bandeja de entrada unificada.
-                </p>
-              </div>
-              
-              <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md text-left space-y-3 h-full">
-                <Users className="h-10 w-10 text-primary" />
-                <h3 className="text-xl font-bold">Asignación de Equipo</h3>
-                <p className="text-muted-foreground">
-                  Asigna tickets automáticamente a los agentes correctos basado en reglas o departamento.
-                </p>
-              </div>
-              
-              <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md text-left space-y-3 h-full">
-                <BarChartHorizontal className="h-10 w-10 text-primary" />
-                <h3 className="text-xl font-bold">Reportes y Métricas</h3>
-                <p className="text-muted-foreground">
-                  Mide el tiempo de respuesta, la satisfacción del cliente y el rendimiento de tu equipo.
-                </p>
-              </div>
-            
-            </Fade>
-          </div>
+          <div className="relative h-[420px] w-[420px] rounded-full border-[1.5px] border-[#708B63] bg-card shadow-sm z-10 transition-colors duration-300" />
         </div>
-      </section>
 
-      <Slide direction="up" triggerOnce>
-        <section className="container mx-auto text-center py-24 px-4">
-          <h2 className="text-3xl font-bold mb-4">
-            ¿Listo para optimizar tu soporte?
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-            No dejes que otro ticket se pierda. Únete a las empresas que ya
-            confían en Ticko para gestionar su soporte.
+        {/* Texto Derecho */}
+        <div className="w-[15.625rem] space-y-2 text-right">
+          <p className="text-[0.6875rem] font-bold tracking-[0.1875rem] text-primary uppercase">
+            02 · VALIDA
           </p>
-          <Button size="lg" asChild>
-            <Link href="/contactPage">Solicita tu Demo Gratuita</Link>
-          </Button>
-        </section>
-      </Slide>
-    </>
-  )
+          <p className="text-[0.875rem] leading-[1.3125rem] text-muted-foreground">
+            Reseñas y fotos reales contra el greenwashing.
+          </p>
+        </div>
+
+      </div>
+
+      {/* === TEXTO INFERIOR Y BOTÓN === */}
+      <div className="relative z-10 -mt-10 flex flex-col items-center space-y-6">
+        <h1 className="text-sm font-medium tracking-[0.4em] text-[#708B63]">
+          TURISMO SUSTENTABLE · CIUDAD DE MÉXICO
+        </h1>
+        
+        <Link 
+          href="/aboutPage" 
+          className="group flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-all hover:opacity-90 shadow-md"
+        >
+          Acerca de nosotros
+          <span className="transition-transform group-hover:translate-x-1">→</span>
+        </Link>
+      </div>
+
+    </main>
+  );
 }
-
-export default HomePage
-
-// Checar porque no aparecen las tarjetas al scrollear para abajo 
