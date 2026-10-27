@@ -23,7 +23,7 @@ export default function Header() {
     { name: 'Acerca de', href: '/aboutPage' },
     { name: 'Colab', href: '/contactPage' }, 
     { name: 'Home', href: '/' },
-    { name: 'Recomendaciones', href: '#' }, 
+    { name: 'Recomendaciones', href: '/recomendaciones' }, 
     { name: 'Reservas', href: '#' }, 
   ];
 
@@ -38,13 +38,11 @@ export default function Header() {
         }
       `}
     >
-      <div className="container mx-auto flex h-[4.75rem] items-center justify-between px-12">
+      {/* Contenedor principal restaurado */}
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
         
-        <div className="flex items-center gap-4">
-          <button className="p-1 transition-opacity hover:opacity-70">
-            <Image src="/menu.svg" alt="Menú" width={24} height={24} />
-          </button>
-
+        {/* Contenedor del logo restaurado */}
+        <div className="flex items-center">
           <Link href="/" className="text-sm font-bold tracking-widest text-foreground flex items-center gap-2 ml-2">
             <div className="bg-green-700/10 p-1.5 rounded-full flex items-center justify-center">
               <Image src="/hoja.svg" alt="Hoja" width={16} height={16} />
@@ -55,9 +53,7 @@ export default function Header() {
 
         <nav className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => {
-
             const isActive = pathname === link.href;
-
             return (
               <Link 
                 key={link.name}
@@ -76,7 +72,6 @@ export default function Header() {
           })}
         </nav>
 
-
         <div className="flex items-center gap-4">
           <ModeToggle />
           <Button variant="outline" className="rounded-full px-6 flex items-center gap-2" asChild>
@@ -86,7 +81,8 @@ export default function Header() {
             </Link>
           </Button>
         </div>
-      </div>
+        
+      </div> 
     </header>
   )
 }

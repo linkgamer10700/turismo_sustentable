@@ -20,7 +20,7 @@ export default function AuthHeader() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         
         <Link href="/" className="text-xl font-bold text-foreground">
-          Ticko
+          Turismo Sustentable
         </Link>
 
         <div className="flex items-center gap-3">
@@ -32,7 +32,8 @@ export default function AuthHeader() {
               </Button>
             ) : (
               <Button variant="default" asChild>
-                <Link href="/login">Iniciar Sesión</Link>
+                
+                <Link href="/login/loginUser">Iniciar Sesión</Link>
               </Button>
             )}
           </nav>
