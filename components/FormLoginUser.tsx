@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { loginSchema } from "@/lib/zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +25,7 @@ const FormLoginUser = () => {
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>(""); 
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -41,7 +43,11 @@ const FormLoginUser = () => {
     startTransition(() => {
       login(values).then((data) => {
         if (data?.error) {
-          setError(data.error);
+          setError(data.error); // Si la contraseña está mal, muestra el error
+        } else {
+          // 👇 Si todo salió bien, simula la sesión y redirige
+          localStorage.setItem("userToken", "fake-token-123");
+          router.push("/perfil");
         }
       });
     });

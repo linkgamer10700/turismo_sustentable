@@ -24,7 +24,7 @@ export default function Header() {
     { name: 'Colab', href: '/contactPage' }, 
     { name: 'Home', href: '/' },
     { name: 'Recomendaciones', href: '/recomendaciones' }, 
-    { name: 'Reservas', href: '#' }, 
+    { name: 'Reservas', href: '/reservas' },
   ];
 
   return (

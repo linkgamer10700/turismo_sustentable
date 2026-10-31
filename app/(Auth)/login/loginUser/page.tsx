@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import FormLoginUser from "@/components/FormLoginUser"; 
 
+
 export default function LoginUserPage() {
   return (
     <main className="min-h-screen w-full flex flex-col lg:flex-row bg-[#F2EFE9] dark:bg-[#18201C] transition-colors duration-300">
