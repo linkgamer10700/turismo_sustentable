@@ -1,24 +1,108 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Rol {
+  TURISTA
+  PROVEEDOR
+  ADMINISTRADOR
+}
+
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum EstadoValidacion {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+enum TipoDocumento {
+  CERTIFICACION_ECOLOGICA
+  MANEJO_RESIDUOS
+  USO_AGUA_ENERGIA
+  IMPACTO_COMUNITARIO
+  OTRO
+}
+
+enum EstadoReserva {
+  PENDIENTE_PAGO
+  CONFIRMADA
+  CANCELADA
+  COMPLETADA
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String?         @unique
+  emailVerified DateTime?       @map("email_verified")
+  passwordHash  String?         @map("password_hash")
+  image         String?
+  rol           Rol             @default(TURISTA)
+  idioma        String          @default("es") @db.VarChar(10)
+  theme         ThemePreference @default(SYSTEM)
+  preferencias  Json?
+  fechaRegistro DateTime        @default(now()) @map("fecha_registro")
+
+  accounts  Account[]
+  sessions  Session[]
+  proveedor Proveedor?
+  reservas  Reserva[]
+  favoritos Favorito[]
+
+  @@map("users")
+}
+
+model Proveedor {
+  id               String           @id @default(cuid())
+  userId           String           @unique @map("user_id")
+  nombreNegocio    String?          @map("nombre_negocio") @db.VarChar(150)
+  descripcionBreve String?          @map("descripcion_breve") @db.Text
+  categoria        String?          @db.VarChar(100)
+  alcaldiaCDMX     String?          @map("alcaldia_cdmx") @db.VarChar(100)
+  estadoValidacion EstadoValidacion @default(PENDIENTE) @map("estado_validacion")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentos   DocumentoEvidencia[]
+  experiencias Experiencia[]
+
+  @@map("proveedores")
+}
+
+model DocumentoEvidencia {
+  id                     String           @id @default(cuid())
+  proveedorId            String           @map("proveedor_id")
+  tipo                   TipoDocumento
+  titulo                 String           @db.VarChar(150)
+  descripcion            String?          @db.Text
+  archivoUrl             String           @map("archivo_url") @db.VarChar(255)
+  estado                 EstadoValidacion @default(PENDIENTE)
+  retroalimentacionAdmin String?          @map("retroalimentacion_admin") @db.Text
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @updatedAt @map("updated_at")
+
+  proveedor Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+
+  @@map("documentos_evidencias")
+}
+
 model Account {
   id                String  @id @default(cuid())
-  userId            String
+  userId            String  @map("user_id")
   type              String
   provider          String
-  providerAccountId String
+  providerAccountId String  @map("provider_account_id")
   refresh_token     String? @db.Text
   access_token      String? @db.Text
   expires_at        Int?
@@ -30,25 +114,17 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@map("accounts")
 }
 
 model Session {
   id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
 
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-
-  accounts Account[]
-  sessions Session[]
+  @@map("sessions")
 }
 
 model VerificationToken {
@@ -57,235 +133,60 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
+model Experiencia {
+  id                 String    @id @default(cuid())
+  proveedorId        String    @map("proveedor_id")
+  proveedor          Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+  titulo             String    @db.VarChar(180)
+  descripcion        String    @db.Text
+  categoria          String    @db.VarChar(100) // Ecoturismo, Gastronomía, Cultura, Aventura, Naturaleza
+  alcaldiaCDMX       String    @map("alcaldia_cdmx") @db.VarChar(100)
+  ubicacionDetallada String?   @map("ubicacion_detallada") @db.VarChar(255)
+  precio             Decimal   @db.Decimal(10, 2)
+  duracionMinutos    Int       @map("duracion_minutos")
+  capacidadCarga     Int       @map("capacidad_carga") // Límite de carga para evitar desgaste ecológico
+  imagenes           Json?     // Array de URLs en string
+  activo             Boolean   @default(true)
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
-// Tabla de Roles
-model Rol {
-  id           String    @id @default(uuid())
-  nombre       String    @unique @db.VarChar(100) 
-  descripcion  String?   @db.Text
-  creado_en    DateTime  @default(now())
-  actualizado_en DateTime @updatedAt
+  reservas  Reserva[]
+  favoritos Favorito[]
 
-  usuarios Usuario[]
+  @@map("experiencias")
 }
 
-// Tabla de Departamentos
-model Departamento {
-  id           String    @id @default(uuid())
-  nombre       String    @unique @db.VarChar(255)
-  descripcion  String?   @db.Text
-  managerId    String? 
-  activo       Boolean   @default(true)
-  creado_en    DateTime  @default(now())
-  actualizado_en DateTime @updatedAt
+model Reserva {
+  id                String        @id @default(cuid())
+  userId            String        @map("user_id")
+  experienciaId     String        @map("experiencia_id")
+  fecha             DateTime      @db.Date
+  numeroPersonas    Int           @map("numero_personas")
+  precioTotal       Decimal       @map("precio_total") @db.Decimal(10, 2)
+  estado            EstadoReserva @default(CONFIRMADA)
+  codigoComprobante String        @unique @map("codigo_comprobante") @db.VarChar(50)
+  notasEspeciales   String?       @map("notas_especiales") @db.Text
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
 
-  // Relaciones
-  manager Usuario? @relation("ManagerDepartamento", fields: [managerId], references: [id])
-  usuarios Usuario[]
-  tickets  Ticket[]
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiencia Experiencia @relation(fields: [experienciaId], references: [id], onDelete: Cascade)
+
+  @@map("reservas")
 }
 
-// Tabla de Usuarios
-model Usuario {
-  id               String    @id @default(uuid())
-  correo           String    @unique @db.VarChar(255)
-  contrasena       String    @db.VarChar(255)
-  nombre           String    @db.VarChar(255)
-  rolId            String
-  departamentoId   String?
-  avatar           String?   @db.VarChar(255)
-  telefono         String?   @db.VarChar(50)
-  activo           Boolean   @default(true)
-  emailVerificado  Boolean   @default(false)
-  ultimoIngreso    DateTime?
-  creado_en        DateTime  @default(now())
-  actualizado_en   DateTime  @updatedAt
+model Favorito {
+  id            String      @id @default(cuid())
+  userId        String      @map("user_id")
+  experienciaId String      @map("experiencia_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
 
-  // Relaciones
-  rol Rol @relation(fields: [rolId], references: [id])
-  departamento Departamento? @relation(fields: [departamentoId], references: [id])
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiencia Experiencia @relation(fields: [experienciaId], references: [id], onDelete: Cascade)
 
-  // Relaciones inversas (para tickets, comentarios, historial, etc.)
-  departamentosManejados Departamento[] @relation("ManagerDepartamento")
-  ticketsCreados Ticket[] @relation("TicketCreadoPor")
-  ticketsAsignados Ticket[] @relation("TicketAsignadoA")
-  comentarios Comentario[]
-  archivosAdjuntos ArchivoAdjunto[]
-  historialTickets HistorialTicket[]
-  notificaciones Notificacion[]
-  plantillasPlantillaRespuesta PlantillaRespuesta[]
-}
-
-// Tabla de Categorías
-model Categoria {
-  id           String    @id @default(uuid())
-  nombre       String    @unique @db.VarChar(255)
-  descripcion  String?   @db.Text
-  color        String?   @db.VarChar(7)
-  activo       Boolean   @default(true)
-  creado_en    DateTime  @default(now())
-  actualizado_en DateTime @updatedAt
-
-  tickets Ticket[]
-  plantillas PlantillaRespuesta[]
-}
-
-// Tabla de Políticas SLA
-model PoliticaSLA {
-  id                String    @id @default(uuid())
-  nombre            String    @db.VarChar(255)
-  prioridad         String
-  tiempoRespuesta   Int       
-  tiempoResolucion  Int     
-  activo            Boolean   @default(true)
-  creado_en         DateTime  @default(now())
-  actualizado_en    DateTime  @updatedAt
-
-  tickets Ticket[]
-}
-
-// Tabla de Etiquetas
-model Etiqueta {
-  id           String    @id @default(uuid())
-  nombre       String    @unique @db.VarChar(100)
-  color        String?   @db.VarChar(7)
-  creado_en    DateTime  @default(now())
-
-  tickets_etiquetas TicketEtiqueta[]
-}
-
-// Tabla de Plantillas de Respuesta
-model PlantillaRespuesta {
-  id           String    @id @default(uuid())
-  titulo       String    @db.VarChar(255)
-  contenido    String    @db.Text
-  categoriaId  String?
-  creadoPorId  String
-  activo       Boolean   @default(true)
-  creado_en    DateTime  @default(now())
-  actualizado_en DateTime @updatedAt
-
-  categoria Categoria? @relation(fields: [categoriaId], references: [id])
-  creadoPor Usuario @relation(fields: [creadoPorId], references: [id])
-}
-
-// Tabla de Tickets
-model Ticket {
-  id                   String    @id @default(uuid())
-  numeroTicket         String    @unique @db.VarChar(50)
-  titulo               String    @db.VarChar(255)
-  descripcion          String    @db.Text
-  estado               String   
-  prioridad            String
-  fechaLimite          DateTime?
-  resueltoEn           DateTime?
-  cerradoEn            DateTime?
-  calificacion         Int?
-  comentarioCalificacion String? @db.Text
-  creado_en            DateTime  @default(now())
-  actualizado_en       DateTime  @updatedAt
-
-  // Foreign Keys
-  categoriaId          String?
-  creadoPorId          String
-  asignadoAId          String?
-  departamentoId       String?
-  politicaSlaId        String?
-
-  // Relaciones
-  categoria Categoria? @relation(fields: [categoriaId], references: [id])
-  creadoPor Usuario @relation("TicketCreadoPor", fields: [creadoPorId], references: [id])
-  asignadoA Usuario? @relation("TicketAsignadoA", fields: [asignadoAId], references: [id])
-  departamento Departamento? @relation(fields: [departamentoId], references: [id])
-  politicaSla PoliticaSLA? @relation(fields: [politicaSlaId], references: [id])
-
-  // Relaciones inversas
-  comentarios Comentario[]
-  archivosAdjuntos ArchivoAdjunto[]
-  historialTickets HistorialTicket[]
-  notificaciones Notificacion[]
-  tickets_etiquetas TicketEtiqueta[]
-}
-
-// Tabla de Comentarios
-model Comentario {
-  id           String    @id @default(uuid())
-  contenido    String    @db.Text
-  esInterno    Boolean   @default(false)
-  creado_en    DateTime  @default(now())
-  actualizado_en DateTime @updatedAt
-
-  // Foreign Keys
-  ticketId     String?
-  usuarioId    String?
-
-  // Relaciones
-  ticket Ticket? @relation(fields: [ticketId], references: [id])
-  usuario Usuario? @relation(fields: [usuarioId], references: [id])
-
-  // Relaciones inversas
-  archivosAdjuntos ArchivoAdjunto[]
-}
-
-// Tabla de Archivos Adjuntos
-model ArchivoAdjunto {
-  id            String    @id @default(uuid())
-  nombreArchivo String    @db.VarChar(255)
-  urlArchivo    String    @db.VarChar(500)
-  tamanoArchivo Int
-  tipoMime      String?   @db.VarChar(100)
-  creado_en     DateTime  @default(now())
-
-  // Foreign Keys
-  ticketId      String?
-  comentarioId  String?
-  usuarioId     String?
-
-  // Relaciones
-  ticket Ticket? @relation(fields: [ticketId], references: [id])
-  comentario Comentario? @relation(fields: [comentarioId], references: [id])
-  usuario Usuario? @relation(fields: [usuarioId], references: [id])
-}
-
-// Tabla de Historial de Tickets
-model HistorialTicket {
-  id           String    @id @default(uuid())
-  campo        String    @db.VarChar(100)
-  valorAnterior String?  @db.Text
-  valorNuevo   String?   @db.Text
-  creado_en    DateTime  @default(now())
-
-  ticketId     String
-  usuarioId    String
-
-  ticket Ticket @relation(fields: [ticketId], references: [id])
-  usuario Usuario @relation(fields: [usuarioId], references: [id])
-}
-
-model Notificacion {
-  id           String    @id @default(uuid())
-  tipo         String    @db.VarChar(100)
-  mensaje      String    @db.Text
-  leida        Boolean   @default(false)
-  creado_en    DateTime  @default(now())
-
-  usuarioId    String
-  ticketId     String?
-
-  usuario Usuario @relation(fields: [usuarioId], references: [id])
-  ticket Ticket? @relation(fields: [ticketId], references: [id])
-}
-
-// Tabla intermedia Tickets-Etiquetas (muchos a muchos)
-model TicketEtiqueta {
-  ticketId    String
-  etiquetaId  String
-  creado_en   DateTime @default(now())
-
-  ticket Ticket @relation(fields: [ticketId], references: [id])
-  etiqueta Etiqueta @relation(fields: [etiquetaId], references: [id])
-
-  @@id([ticketId, etiquetaId])
+  @@unique([userId, experienciaId])
+  @@map("favoritos")
 }

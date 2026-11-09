@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { z } from "zod";
-import { loginSchema } from "@/lib/zod";
+import { LoginSchema } from "@/lib/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -23,22 +23,19 @@ import Link from "next/link";
 
 const FormLoginUser = () => {
   const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>(""); 
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<z.infer<typeof LoginSchema>>({
+    resolver: zodResolver(LoginSchema),
     defaultValues: {
       email: "",
       password: "",
-      // Se eliminó 'company' de los valores por defecto
     },
   });
 
-  function onSubmit(values: z.infer<typeof loginSchema>) {
+  function onSubmit(values: z.infer<typeof LoginSchema>) {
     setError("");
-    setSuccess("");
 
     startTransition(() => {
       login(values).then((data) => {

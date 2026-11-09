@@ -52,3 +52,5 @@ ehthumbs.db
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+repomix-output.xml

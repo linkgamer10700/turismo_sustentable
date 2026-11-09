@@ -1,54 +1,101 @@
 "use server";
 
-import * as z from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { registerSchema } from "@/lib/zod";
+import { RegisterSchema, type RegisterInput } from "@/lib/validations/auth";
 
-export const register = async (values: z.infer<typeof registerSchema>) => {
-    const validatedFields = registerSchema.safeParse(values);
+export const register = async (values: RegisterInput | Record<string, unknown>) => {
+  const validatedFields = RegisterSchema.safeParse(values);
 
-    if (!validatedFields.success) {
-        return { error: "Campos inválidos!" };
-    }
+  if (!validatedFields.success) {
+    return {
+      error: "Campos inválidos",
+      details: validatedFields.error.flatten().fieldErrors,
+    };
+  }
 
-    const { email, password, name, phone } = validatedFields.data;
+  const {
+    email,
+    password,
+    name,
+    rol = "TURISTA",
+    theme = "SYSTEM",
+    preferencias,
+    nombreNegocio,
+    descripcionBreve,
+    categoria,
+    alcaldiaCDMX,
+  } = validatedFields.data;
 
-    const existingUser = await prisma.usuario.findUnique({
-        where: {
-            correo: email,
-        },
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
     });
 
     if (existingUser) {
-        return { error: "El correo ya está en uso!" };
+      return { error: "El correo ya está en uso!" };
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Default role assignment - assuming you have a way to determine default role ID
-    // For now, we'll need to fetch a default role or handle it. 
-    // Let's assume there's a 'USER' role or similar. 
-    // Since we don't know the role IDs, we might need to query them first or hardcode if known.
-    // For safety, let's try to find a 'Usuario' role or create one if it doesn't exist? 
-    // Or better, just fail if no role found for now, or use a placeholder.
-
-    // Fetch 'Usuario' role
-    const userRole = await prisma.rol.findUnique({ where: { nombre: "Usuario" } });
-
-    if (!userRole) {
-        return { error: "Error interno: Rol 'Usuario' no encontrado." };
-    }
-
-    await prisma.usuario.create({
+    const createdUser = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
         data: {
-            nombre: name,
-            correo: email,
-            contrasena: hashedPassword,
-            telefono: phone,
-            rolId: userRole.id,
+          name,
+          email,
+          passwordHash: hashedPassword,
+          rol,
+          theme,
+          preferencias: preferencias ?? undefined,
         },
+      });
+
+      if (rol === "PROVEEDOR") {
+        await tx.proveedor.create({
+          data: {
+            userId: user.id,
+            nombreNegocio: nombreNegocio || name,
+            descripcionBreve: descripcionBreve || null,
+            categoria: categoria || null,
+            alcaldiaCDMX: alcaldiaCDMX || null,
+            estadoValidacion: "PENDIENTE",
+          },
+        });
+      }
+
+      return tx.user.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          rol: true,
+          idioma: true,
+          theme: true,
+          preferencias: true,
+          fechaRegistro: true,
+          proveedor: {
+            select: {
+              id: true,
+              nombreNegocio: true,
+              descripcionBreve: true,
+              categoria: true,
+              alcaldiaCDMX: true,
+              estadoValidacion: true,
+            },
+          },
+        },
+      });
     });
 
-    return { success: "Cuenta creada exitosamente!" };
+    return {
+      success: "Cuenta creada exitosamente!",
+      data: createdUser,
+    };
+  } catch (error) {
+    console.error("[REGISTER_ACTION_ERROR]", error);
+    return { error: "Error en el servidor al registrar el usuario" };
+  }
 };

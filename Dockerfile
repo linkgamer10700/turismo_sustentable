@@ -19,6 +19,8 @@ COPY . .
 # Variables de entorno para el proceso de compilación
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV DATABASE_URL="mysql://turismo_user:turismo_pass@localhost:3306/turismo_sustentable"
+ENV AUTH_SECRET="turismo_sustentable_secret_auth_token_key_2026_dev"
 
 # Compilar la aplicación Next.js
 RUN npm run build

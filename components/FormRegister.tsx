@@ -1,7 +1,7 @@
 "use client";
 
 import { z } from "zod";
-import { registerSchema } from "@/lib/zod";
+import { RegisterSchema } from "@/lib/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -24,17 +24,19 @@ const FormRegister = () => {
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm({
+    resolver: zodResolver(RegisterSchema),
     defaultValues: {
-      email: "",
-      password: "",
       name: "",
+      email: "",
       phone: "",
+      password: "",
+      rol: "TURISTA" as const,
+      theme: "SYSTEM" as const,
     },
   });
 
-  function onSubmit(values: z.infer<typeof registerSchema>) {
+  function onSubmit(values: z.infer<typeof RegisterSchema>) {
     setError("");
     setSuccess("");
 
