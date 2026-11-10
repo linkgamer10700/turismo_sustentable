@@ -26,7 +26,7 @@ services:
     container_name: turismo_app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
     depends_on:
       db:
         condition: service_healthy
@@ -34,7 +34,7 @@ services:
       DATABASE_URL: "mysql://turismo_user:turismo_pass@db:3306/turismo_sustentable"
       AUTH_SECRET: "turismo_sustentable_secret_auth_token_key_2026_dev"
       AUTH_TRUST_HOST: "true"
-      NEXTAUTH_URL: "http://localhost:3000"
+      NEXTAUTH_URL: "http://localhost:${APP_PORT:-3000}"
       NODE_ENV: "production"
 
 volumes:

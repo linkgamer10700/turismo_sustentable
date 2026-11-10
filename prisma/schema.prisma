@@ -58,6 +58,7 @@ model User {
   proveedor Proveedor?
   reservas  Reserva[]
   favoritos Favorito[]
+  resenas   Resena[]
 
   @@map("users")
 }
@@ -155,6 +156,7 @@ model Experiencia {
 
   reservas  Reserva[]
   favoritos Favorito[]
+  resenas   Resena[]
 
   @@map("experiencias")
 }
@@ -189,4 +191,22 @@ model Favorito {
 
   @@unique([userId, experienciaId])
   @@map("favoritos")
+}
+
+model Resena {
+  id            String       @id @default(cuid())
+  userId        String       @map("user_id")
+  experienciaId String?      @map("experiencia_id")
+  lugarSlug     String       @map("lugar_slug") @db.VarChar(100)
+  autorNombre   String       @map("autor_nombre") @db.VarChar(100)
+  calificacion  Int          @default(5)
+  comentario    String       @db.Text
+  fotos         Json?
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiencia   Experiencia? @relation(fields: [experienciaId], references: [id], onDelete: Cascade)
+
+  @@index([lugarSlug])
+  @@map("resenas")
 }

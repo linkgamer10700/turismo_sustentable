@@ -7,10 +7,10 @@ import { prisma } from "@/lib/db";
  */
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await Promise.resolve(params);
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(

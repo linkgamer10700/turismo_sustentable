@@ -1,92 +1,108 @@
-import { auth, signOut } from "@/auth";
-import { redirect } from "next/navigation";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ModeToggle } from "@/components/ThemeToggle";
-import { Button } from "@/components/ui/button";
-import { User, Mail, LogOut, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-export default async function NegocioPage() {
-    const session = await auth();
+export default function ProveedorDashboardPage() {
+  const router = useRouter();
+  const [perfil, setPerfil] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-    if (!session) {
-        redirect("/login/loginNegocio");
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/user/profile");
+        if (res.status === 401) {
+          router.push("/login/loginUser");
+          return;
+        }
+        const data = await res.json();
+        if (data.success && data.data) {
+          setPerfil(data.data);
+        }
+      } catch (error) {
+        console.error("Error cargando perfil", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
+    loadProfile();
+  }, [router]);
 
-    const userName = session.user?.name || "Negocio";
-    const userEmail = session.user?.email || "negocio@test.com";
-
+  if (isLoading) {
     return (
-        <div className="min-h-screen flex flex-col bg-muted/20">
-            <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-md">
-                <div className="container mx-auto flex h-16 items-center justify-between px-6">
-                    <Link href="/" className="text-xl font-bold tracking-tight text-foreground">
-                        Ticko
-                    </Link>
-
-                    <div className="flex items-center gap-3">
-                        <ModeToggle />
-                        <form
-                            action={async () => {
-                                "use server";
-                                await signOut({ redirectTo: "/login/loginNegocio" });
-                            }}
-                        >
-                            <Button variant="outline" size="sm" type="submit" className="gap-2">
-                                <LogOut className="h-4 w-4" />
-                                Cerrar Sesión
-                            </Button>
-                        </form>
-                    </div>
-                </div>
-            </header>
-
-            <main className="container mx-auto flex-1 p-6 md:p-10 max-w-5xl">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                        Panel de Negocio
-                    </h1>
-                    <p className="text-muted-foreground mt-1">
-                        Bienvenido, <span className="font-semibold text-foreground">{userName}</span>.
-                    </p>
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-2 mb-8">
-                    <div className="rounded-xl border bg-card p-6 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-muted-foreground">Negocio</span>
-                            <User className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div className="mt-4">
-                            <p className="text-lg font-bold text-card-foreground">{userName}</p>
-                            <p className="text-sm text-muted-foreground truncate">{userEmail}</p>
-                        </div>
-                    </div>
-
-                    <div className="rounded-xl border bg-card p-6 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-muted-foreground">Estado de Cuenta</span>
-                            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                        </div>
-                        <div className="mt-4">
-                            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">Activa</p>
-                            <p className="text-sm text-muted-foreground">Sesión autenticada</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-                    <div className="border-b bg-muted/40 px-6 py-4">
-                        <h2 className="text-base font-semibold text-card-foreground">
-                            Datos de tu Sesión
-                        </h2>
-                    </div>
-                    <div className="p-6">
-                        <pre className="rounded-lg bg-muted p-4 text-xs font-mono overflow-x-auto text-foreground">
-                            {JSON.stringify(session, null, 2)}
-                        </pre>
-                    </div>
-                </div>
-            </main>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#F4F1EA] dark:bg-[#1E2420] text-[#728C69]">
+        Cargando panel...
+      </div>
     );
+  }
+
+  const negocio = perfil?.proveedor;
+
+  return (
+    <main className="min-h-screen w-full bg-[#F4F1EA] dark:bg-[#1E2420] transition-colors duration-300 py-8 px-4 flex justify-center pb-24">
+      <div className="w-full max-w-md flex flex-col">
+        <h1 className="font-serif text-3xl text-[#1E201D] dark:text-white mb-6">Mi cuenta</h1>
+
+        {/* Tarjeta del Negocio */}
+        <div className="bg-white dark:bg-[#2A312C] rounded-[2rem] p-5 mb-6 shadow-sm border border-transparent dark:border-white/5">
+          <div className="w-full h-32 bg-[#B4CBB0] rounded-xl mb-4 relative overflow-hidden">
+            {/* Placeholder de Montañas SVG */}
+            <svg viewBox="0 0 400 120" className="w-full h-full object-cover" preserveAspectRatio="none">
+              <circle cx="320" cy="40" r="20" fill="#F4E6B4" />
+              <polygon points="0,120 150,50 350,120" fill="#758C6E" />
+              <polygon points="100,120 280,70 450,120" fill="#586E52" />
+            </svg>
+          </div>
+          <h2 className="font-serif text-2xl text-[#1E201D] dark:text-white mb-1">
+            {negocio?.nombreNegocio || "Nombre del negocio"}
+          </h2>
+          <p className="text-sm text-[#8C9287] dark:text-[#9EA399] mb-2 line-clamp-2">
+            {negocio?.descripcionBreve || "Descripción breve"}
+          </p>
+          <div className="flex text-[10px] text-[#63665E] dark:text-[#A5B29A] gap-2 font-medium">
+            <span>Medio día</span>
+            <span>·</span>
+            <span className="uppercase">{negocio?.categoria || "Categoría"}</span>
+            <span>·</span>
+            <span>{negocio?.alcaldiaCDMX || "Ubicación"}</span>
+          </div>
+        </div>
+
+        {/* Menú de Opciones */}
+        <div className="flex flex-col gap-3">
+          <Link
+            href="/negocio/documentos"
+            className="w-full bg-white dark:bg-[#2A312C] rounded-2xl p-4 flex items-center justify-between shadow-sm border border-transparent dark:border-white/5 hover:bg-[#E3E5D8] dark:hover:bg-[#3D453F] transition-colors"
+          >
+            <span className="text-base font-medium text-[#1E201D] dark:text-white">Documentos</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C9287" strokeWidth="2">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </Link>
+
+          <Link
+            href="/negocio/anuncios"
+            className="w-full bg-white dark:bg-[#2A312C] rounded-2xl p-4 flex items-center justify-between shadow-sm border border-transparent dark:border-white/5 hover:bg-[#E3E5D8] dark:hover:bg-[#3D453F] transition-colors"
+          >
+            <span className="text-base font-medium text-[#1E201D] dark:text-white">Anuncios del administrador</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C9287" strokeWidth="2">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </Link>
+
+          <Link
+            href="/reservas"
+            className="w-full bg-white dark:bg-[#2A312C] rounded-2xl p-4 flex items-center justify-between shadow-sm border border-transparent dark:border-white/5 hover:bg-[#E3E5D8] dark:hover:bg-[#3D453F] transition-colors"
+          >
+            <span className="text-base font-medium text-[#1E201D] dark:text-white">Reservas</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C9287" strokeWidth="2">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
 }

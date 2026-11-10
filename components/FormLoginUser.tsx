@@ -40,11 +40,12 @@ const FormLoginUser = () => {
     startTransition(() => {
       login(values).then((data) => {
         if (data?.error) {
-          setError(data.error); // Si la contraseña está mal, muestra el error
+          setError(data.error);
         } else {
-          // 👇 Si todo salió bien, simula la sesión y redirige
           localStorage.setItem("userToken", "fake-token-123");
-          router.push("/perfil");
+          const targetUrl = data?.redirectTo || "/dashboard";
+          router.push(targetUrl);
+          router.refresh();
         }
       });
     });

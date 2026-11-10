@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { LoginSchema } from "@/lib/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +23,7 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 const FormLoginAdmin = () => {
   const [error, setError] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -38,6 +40,10 @@ const FormLoginAdmin = () => {
       loginAdmin(values).then((data) => {
         if (data?.error) {
           setError(data.error);
+        } else {
+          const targetUrl = data?.redirectTo || "/admin/auditorias";
+          router.push(targetUrl);
+          router.refresh();
         }
       });
     });

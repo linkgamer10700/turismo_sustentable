@@ -275,9 +275,9 @@ export async function GET(req: Request) {
       });
     }
 
-    // ADMINISTRADOR: Lista general y métricas de impacto
+    // ADMINISTRADOR: Lista general y métricas de impacto reales desde BD
     if (userRole === Rol.ADMINISTRADOR) {
-      const [reservas, metricas] = await Promise.all([
+      const [reservas, metricas, totalProveedores, proveedoresAprobados, proveedoresPendientes] = await Promise.all([
         prisma.reserva.findMany({
           where: {
             ...(estadoFiltro ? { estado: estadoFiltro } : {}),
@@ -294,7 +294,9 @@ export async function GET(req: Request) {
               include: {
                 proveedor: {
                   select: {
+                    id: true,
                     nombreNegocio: true,
+                    categoria: true,
                     alcaldiaCDMX: true,
                   },
                 },
@@ -310,7 +312,56 @@ export async function GET(req: Request) {
             precioTotal: true,
           },
         }),
+        prisma.proveedor.count(),
+        prisma.proveedor.count({ where: { estadoValidacion: "APROBADO" } }),
+        prisma.proveedor.count({ where: { estadoValidacion: "PENDIENTE" } }),
       ]);
+
+      // Métricas por categoría calculadas dinámicamente
+      const categoriaMap: Record<string, { cantidad: number; ingresos: number }> = {};
+      let maxCategoriaCount = 0;
+      for (const r of reservas) {
+        const cat = r.experiencia?.categoria || "General";
+        if (!categoriaMap[cat]) {
+          categoriaMap[cat] = { cantidad: 0, ingresos: 0 };
+        }
+        categoriaMap[cat].cantidad += 1;
+        categoriaMap[cat].ingresos += Number(r.precioTotal || 0);
+        if (categoriaMap[cat].cantidad > maxCategoriaCount) {
+          maxCategoriaCount = categoriaMap[cat].cantidad;
+        }
+      }
+
+      const porCategoria = Object.entries(categoriaMap).map(([categoria, datos]) => ({
+        categoria,
+        cantidad: datos.cantidad,
+        ingresos: datos.ingresos,
+        porcentaje: maxCategoriaCount > 0 ? Math.round((datos.cantidad / maxCategoriaCount) * 100) : 0,
+      }));
+
+      // Top proveedores activos ordenados por reservas reales
+      const proveedorMap: Record<string, { id: string; nombre: string; alcaldia: string; categoria: string; reservas: number; ingresos: number }> = {};
+      for (const r of reservas) {
+        const prov = r.experiencia?.proveedor;
+        if (!prov) continue;
+        const provId = prov.id;
+        if (!proveedorMap[provId]) {
+          proveedorMap[provId] = {
+            id: provId,
+            nombre: prov.nombreNegocio || "Proveedor",
+            alcaldia: prov.alcaldiaCDMX || "CDMX",
+            categoria: prov.categoria || "Ecoturismo",
+            reservas: 0,
+            ingresos: 0,
+          };
+        }
+        proveedorMap[provId].reservas += 1;
+        proveedorMap[provId].ingresos += Number(r.precioTotal || 0);
+      }
+
+      const topProveedores = Object.values(proveedorMap)
+        .sort((a, b) => b.reservas - a.reservas)
+        .slice(0, 5);
 
       return NextResponse.json({
         success: true,
@@ -319,6 +370,11 @@ export async function GET(req: Request) {
           totalReservas: metricas._count.id || 0,
           totalPersonas: metricas._sum.numeroPersonas || 0,
           totalIngresos: metricas._sum.precioTotal || 0,
+          totalProveedores,
+          proveedoresAprobados,
+          proveedoresPendientes,
+          porCategoria,
+          topProveedores,
         },
         count: reservas.length,
         reservas,

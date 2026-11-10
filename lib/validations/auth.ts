@@ -72,6 +72,16 @@ export const ForgotPasswordSchema = z.object({
 });
 
 export const UpdatePreferencesSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, { message: "El nombre debe tener al menos 2 caracteres." })
+    .optional(),
+  password: z
+    .string()
+    .min(6, { message: "La nueva contraseña debe tener al menos 6 caracteres." })
+    .optional()
+    .or(z.literal("")),
   idioma: z
     .string()
     .trim()

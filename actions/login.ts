@@ -1,6 +1,6 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { LoginSchema, type LoginInput } from "@/lib/validations/auth";
 import { prisma } from "@/lib/db";
@@ -14,7 +14,7 @@ export async function getRedirectPathByRole(role?: string | Rol | null): Promise
   switch (role) {
     case "ADMINISTRADOR":
     case Rol.ADMINISTRADOR:
-      return "/admin/dashboard";
+      return "/admin/auditorias";
     case "PROVEEDOR":
     case Rol.PROVEEDOR:
       return "/negocio/dashboard";
@@ -88,4 +88,8 @@ export const loginAdmin = async (values: LoginInput | { email: string; password:
 
 export const loginNegocio = async (values: LoginInput | { email: string; password: string }) => {
   return login(values);
+};
+
+export const logout = async () => {
+  await signOut({ redirectTo: "/" });
 };

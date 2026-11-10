@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { UpdatePreferencesSchema } from "@/lib/validations/auth";
 import { Prisma, ThemePreference } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 export async function GET() {
   try {
@@ -111,9 +112,17 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const { idioma, theme, preferencias } = validation.data;
+    const { name, password, idioma, theme, preferencias } = validation.data;
 
     const updateData: Prisma.UserUpdateInput = {};
+
+    if (name !== undefined) {
+      updateData.name = name;
+    }
+
+    if (password && password.trim().length >= 6) {
+      updateData.passwordHash = await bcrypt.hash(password, 10);
+    }
 
     if (idioma !== undefined) {
       updateData.idioma = idioma;
