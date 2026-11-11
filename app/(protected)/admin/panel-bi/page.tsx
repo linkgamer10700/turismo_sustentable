@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import AdminHeader from "@/components/AdminHeader";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { TrendingUp, Users, DollarSign, Building2, Award } from "lucide-react";
 
 export default function PanelBIPage() {
@@ -27,7 +28,7 @@ export default function PanelBIPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F1EA] dark:bg-[#18201C] transition-colors duration-300">
-      <AdminHeader activeTab="panel-bi" />
+      <Header />
 
       <main className="container mx-auto flex-1 p-6 md:p-10 max-w-6xl">
         <div className="mb-8">
@@ -208,6 +209,8 @@ export default function PanelBIPage() {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

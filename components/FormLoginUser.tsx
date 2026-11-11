@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { z } from "zod";
 import { LoginSchema } from "@/lib/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,8 @@ const FormLoginUser = () => {
   const [error, setError] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -43,7 +45,7 @@ const FormLoginUser = () => {
           setError(data.error);
         } else {
           localStorage.setItem("userToken", "fake-token-123");
-          const targetUrl = data?.redirectTo || "/dashboard";
+          const targetUrl = callbackUrl || data?.redirectTo || "/dashboard";
           router.push(targetUrl);
           router.refresh();
         }

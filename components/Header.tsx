@@ -5,8 +5,10 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { useState, useEffect } from "react";
 import { logout } from "@/actions/login";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +30,7 @@ export default function Header() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,31 +69,46 @@ export default function Header() {
     };
   }, [pathname]);
 
-  const navLinks = user?.rol === "ADMINISTRADOR"
+  const userRole = user?.rol?.toUpperCase().trim();
+  const isAdmin = userRole === "ADMINISTRADOR" || userRole === "ADMIN" || pathname.startsWith("/admin");
+  const isProvider = userRole === "PROVEEDOR" || pathname.startsWith("/negocio");
+  const isTourist = userRole === "TURISTA";
+
+  const navLinks = isAdmin
     ? [
-        { name: "Home", href: "/" },
-        { name: "Evidencias", href: "/admin/auditorias" },
-        { name: "Panel BI", href: "/admin/panel-bi" },
-        { name: "Auditor", href: "/admin/dashboard" },
-        { name: "Catálogo", href: "/busqueda" },
-        { name: "Acerca de", href: "/aboutPage" },
+        { name: t("nav_home"), href: "/" },
+        { name: t("nav_evidence"), href: "/admin/auditorias" },
+        { name: t("nav_bi_panel"), href: "/admin/panel-bi" },
+        { name: t("nav_auditor"), href: "/admin/dashboard" },
+        { name: t("nav_catalog"), href: "/busqueda" },
+        { name: t("nav_about"), href: "/aboutPage" },
       ]
-    : user?.rol === "PROVEEDOR"
+    : isProvider
     ? [
-        { name: "Home", href: "/" },
-        { name: "Mi Negocio", href: "/negocio/dashboard" },
-        { name: "Documentos", href: "/negocio/documentos" },
-        { name: "Reservas", href: "/reservas" },
-        { name: "Catálogo", href: "/busqueda" },
-        { name: "Acerca de", href: "/aboutPage" },
+        { name: t("nav_home"), href: "/" },
+        { name: t("nav_my_business"), href: "/negocio/dashboard" },
+        { name: t("nav_documents"), href: "/negocio/documentos" },
+        { name: t("nav_bookings"), href: "/reservas" },
+        { name: t("nav_catalog"), href: "/busqueda" },
+        { name: t("nav_about"), href: "/aboutPage" },
+      ]
+    : isTourist
+    ? [
+        { name: t("nav_home"), href: "/" },
+        { name: t("nav_dashboard"), href: "/dashboard" },
+        { name: t("nav_explore"), href: "/busqueda" },
+        { name: t("nav_recommendations"), href: "/recomendaciones" },
+        { name: t("nav_ai_recommendations"), href: "/ia-recomendaciones" },
+        { name: t("nav_bookings"), href: "/reservas" },
+        { name: t("nav_about"), href: "/aboutPage" },
       ]
     : [
-        { name: "Home", href: "/" },
-        { name: "Explorar", href: "/busqueda" },
-        { name: "Recomendaciones", href: "/recomendaciones" },
-        { name: "Reservas", href: "/reservas" },
-        { name: "Acerca de", href: "/aboutPage" },
-        { name: "Colab", href: "/contactPage" },
+        { name: t("nav_home"), href: "/" },
+        { name: t("nav_explore"), href: "/busqueda" },
+        { name: t("nav_recommendations"), href: "/recomendaciones" },
+        { name: t("nav_ai_recommendations"), href: "/ia-recomendaciones" },
+        { name: t("nav_about"), href: "/aboutPage" },
+        { name: t("nav_colab"), href: "/contactPage" },
       ];
 
   const getInitials = (name?: string | null, email?: string | null) => {
@@ -130,7 +148,7 @@ export default function Header() {
             <div className="bg-green-700/10 p-1.5 rounded-full flex items-center justify-center">
               <Image src="/hoja.svg" alt="Hoja" width={16} height={16} />
             </div>
-            <span>TURISMO SUSTENTABLE</span>
+            <span>{t("brand_title")}</span>
           </Link>
         </div>
 
@@ -156,7 +174,8 @@ export default function Header() {
         </nav>
 
         {/* Acciones de usuario y tema */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <LanguageToggle />
           <ModeToggle />
 
           {!isLoadingUser && user ? (
@@ -186,105 +205,129 @@ export default function Header() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
-                {user.rol === "ADMINISTRADOR" ? (
+                {isAdmin ? (
                   <>
                     <DropdownMenuItem asChild>
                       <Link
                         href="/admin/auditorias"
                         className="cursor-pointer text-xs font-medium py-2 text-[#C81D77] dark:text-[#E24A96]"
                       >
-                        Evidencias y Auditorías
+                        {t("nav_evidence")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/admin/panel-bi" className="cursor-pointer text-xs font-medium py-2">
-                        Panel BI y Métricas
+                        {t("nav_bi_panel")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/admin/dashboard" className="cursor-pointer text-xs font-medium py-2">
-                        Panel General Admin
+                        {t("nav_auditor")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/perfil/editar" className="cursor-pointer text-xs font-medium py-2">
-                        Datos de la Cuenta
+                        {t("nav_account_data")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/perfil/preferencias" className="cursor-pointer text-xs font-medium py-2">
-                        Preferencias de Sistema
+                        {t("nav_preferences")}
                       </Link>
                     </DropdownMenuItem>
                   </>
-                ) : user.rol === "PROVEEDOR" ? (
+                ) : isProvider ? (
                   <>
                     <DropdownMenuItem asChild>
                       <Link
                         href="/negocio/dashboard"
                         className="cursor-pointer text-xs font-medium py-2 text-[#728C69] dark:text-[#A5B29A]"
                       >
-                        Mi Cuenta (Negocio)
+                        {t("nav_my_business")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/negocio/documentos" className="cursor-pointer text-xs font-medium py-2">
-                        Documentos y Evidencias
+                        {t("nav_documents")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/reservas" className="cursor-pointer text-xs font-medium py-2">
-                        Reservas Recibidas
+                        {t("nav_bookings")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/perfil/editar" className="cursor-pointer text-xs font-medium py-2">
-                        Datos de la Cuenta
+                        {t("nav_account_data")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/perfil/preferencias" className="cursor-pointer text-xs font-medium py-2">
-                        Preferencias
+                        {t("nav_preferences")}
                       </Link>
                     </DropdownMenuItem>
                   </>
                 ) : (
                   <>
                     <DropdownMenuItem asChild>
+                      <Link
+                        href="/dashboard"
+                        className="cursor-pointer text-xs font-semibold py-2 text-[#728C69] dark:text-[#A5B29A]"
+                      >
+                        {t("nav_dashboard")}
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
                       <Link href="/perfil" className="cursor-pointer text-xs font-medium py-2">
-                        Mi Perfil
+                        {t("nav_my_profile")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/reservas" className="cursor-pointer text-xs font-medium py-2">
-                        Mis Reservas
+                        {t("nav_bookings")}
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/ia-recomendaciones"
+                        className="cursor-pointer text-xs font-medium py-2 text-[#728C69] dark:text-[#A5B29A]"
+                      >
+                        {t("nav_ai_recommendations")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/perfil/favoritos" className="cursor-pointer text-xs font-medium py-2">
-                        Favoritos
+                        {t("nav_favorites")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/perfil/editar" className="cursor-pointer text-xs font-medium py-2">
-                        Datos de la Cuenta
+                        {t("nav_account_data")}
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link href="/perfil/preferencias" className="cursor-pointer text-xs font-medium py-2">
-                        Preferencias
+                        {t("nav_preferences")}
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link href="/contactPage" className="cursor-pointer text-xs font-medium py-2">
+                        {t("nav_colab")}
                       </Link>
                     </DropdownMenuItem>
                   </>
@@ -295,7 +338,7 @@ export default function Header() {
                   onClick={handleCerrarSesion}
                   className="cursor-pointer text-xs font-medium py-2 text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30"
                 >
-                  Cerrar sesión
+                  {t("nav_logout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -307,7 +350,7 @@ export default function Header() {
             >
               <Link href="/login/loginUser">
                 <Image src="/usuario.svg" alt="Usuario" width={16} height={16} />
-                <span className="text-xs font-medium">Login</span>
+                <span className="text-xs font-medium">{t("nav_login")}</span>
               </Link>
             </Button>
           )}

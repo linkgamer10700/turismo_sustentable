@@ -2,7 +2,8 @@ import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { ModeToggle } from "@/components/ThemeToggle";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
   Compass,
@@ -93,38 +94,7 @@ export default async function UserDashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F1EA] dark:bg-[#18201C] transition-colors duration-300">
-      {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-md">
-        <div className="container mx-auto flex h-16 items-center justify-between px-6">
-          <Link
-            href="/"
-            className="text-sm font-bold tracking-widest text-foreground flex items-center gap-2"
-          >
-            <span className="w-2.5 h-2.5 rounded-full bg-[#728C69]" />
-            TURISMO SUSTENTABLE
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <ModeToggle />
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/" });
-              }}
-            >
-              <Button
-                variant="outline"
-                size="sm"
-                type="submit"
-                className="gap-2 rounded-full text-xs"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-                Cerrar Sesión
-              </Button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Container */}
       <main className="container mx-auto flex-1 p-6 md:p-10 max-w-5xl">
@@ -355,6 +325,8 @@ export default async function UserDashboardPage() {
           </Link>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

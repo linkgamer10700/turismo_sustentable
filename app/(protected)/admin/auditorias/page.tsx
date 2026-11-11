@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import AdminHeader from "@/components/AdminHeader";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { FileText, ArrowRight, ShieldAlert, CheckCircle2, Clock } from "lucide-react";
 
 export default function AuditoriasAdminPage() {
@@ -43,7 +44,7 @@ export default function AuditoriasAdminPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F1EA] dark:bg-[#18201C] transition-colors duration-300">
-      <AdminHeader activeTab="auditorias" />
+      <Header />
 
       <main className="container mx-auto flex-1 p-6 md:p-10 max-w-6xl">
         <div className="mb-8">
@@ -187,6 +188,7 @@ export default function AuditoriasAdminPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ModeToggle } from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { logout } from "@/actions/login";
 import { Button } from "@/components/ui/button";
 import { LogOut, ShieldCheck } from "lucide-react";
@@ -62,6 +63,7 @@ export default function AdminHeader({ activeTab = "dashboard" }: AdminHeaderProp
             </Link>
           </nav>
 
+          <LanguageToggle />
           <ModeToggle />
           <Button
             variant="outline"

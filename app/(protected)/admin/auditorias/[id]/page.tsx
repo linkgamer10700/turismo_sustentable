@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import AdminHeader from "@/components/AdminHeader";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { ArrowLeft, FileText, CheckCircle2, XCircle, ExternalLink, ShieldCheck, MapPin, User } from "lucide-react";
 
 export default function RevisarEvidenciaPage() {
@@ -77,10 +78,11 @@ export default function RevisarEvidenciaPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F4F1EA] dark:bg-[#18201C]">
-        <AdminHeader activeTab="revision" />
+        <Header />
         <div className="flex-1 flex items-center justify-center p-8 text-[#728C69]">
           Cargando datos del proveedor...
         </div>
+        <Footer />
       </div>
     );
   }
@@ -88,20 +90,21 @@ export default function RevisarEvidenciaPage() {
   if (!proveedor) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F4F1EA] dark:bg-[#18201C]">
-        <AdminHeader activeTab="revision" />
+        <Header />
         <main className="container mx-auto flex-1 p-10 max-w-4xl text-center">
           <p className="text-sm text-[#8C9287] mb-4">No se encontró el proveedor solicitado.</p>
           <Link href="/admin/auditorias" className="inline-block bg-[#728C69] text-white text-xs px-5 py-2.5 rounded-xl font-semibold">
             Volver a auditorías
           </Link>
         </main>
+        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F1EA] dark:bg-[#18201C] transition-colors duration-300 pb-28">
-      <AdminHeader activeTab="revision" />
+      <Header />
 
       <main className="container mx-auto flex-1 p-6 md:p-10 max-w-6xl">
         {/* Encabezado y Regreso */}
@@ -305,6 +308,7 @@ export default function RevisarEvidenciaPage() {
           </button>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

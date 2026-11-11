@@ -7,8 +7,8 @@ import { LoginSchema } from "@/lib/validations/auth";
 export default {
   trustHost: true,
   pages: {
-    signIn: "/login",
-    error: "/login",
+    signIn: "/login/loginUser",
+    error: "/login/loginUser",
   },
   providers: [
     Credentials({

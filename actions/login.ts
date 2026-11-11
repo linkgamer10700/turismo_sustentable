@@ -65,7 +65,7 @@ export const login = async (values: LoginInput | { email: string; password: stri
     await signIn("credentials", {
       email,
       password,
-      redirectTo,
+      redirect: false,
     });
 
     return { success: true, redirectTo, role: existingUser.rol };

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 
 export const metadata: Metadata = {
   title: "Dashboard - Ticko",
@@ -21,7 +22,7 @@ export default function ProtectedLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <LanguageProvider>{children}</LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

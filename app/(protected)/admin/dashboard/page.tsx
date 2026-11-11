@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import AdminHeader from "@/components/AdminHeader";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import {
   ShieldCheck,
   CheckCircle,
@@ -118,7 +119,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F1EA] dark:bg-[#18201C] transition-colors duration-300">
-      <AdminHeader activeTab="dashboard" />
+      <Header />
 
       {/* Main Container */}
       <main className="container mx-auto flex-1 p-6 md:p-10 max-w-6xl">
@@ -334,6 +335,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
